@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # dependencies = [
-#   "fastmcp",
+#   "fastmcp","pandas"
 # ]
 # ///
 
@@ -16,6 +16,46 @@ from fastmcp import FastMCP
 
 # Initialize FastMCP
 mcp = FastMCP("PythonEngine")
+
+
+def _get_sandbox_profile(cwd: str) -> str:
+    """Builds the macOS Seatbelt sandbox profile string."""
+    sandbox_rules_path = os.path.join(cwd, ".sandbox-rules")
+    extra_rules_list = []
+
+    if os.path.exists(sandbox_rules_path):
+        try:
+            with open(sandbox_rules_path, "r") as f:
+                now = datetime.now()
+                for line in f:
+                    match = re.search(r";\s*EXPIRES:\s*(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})", line)
+                    if match:
+                        try:
+                            expiry = datetime.fromisoformat(match.group(1))
+                            if expiry < now:
+                                continue
+                        except ValueError:
+                            pass
+                    extra_rules_list.append(line.strip())
+        except Exception as e:
+            # Re-raise to be caught by the tool
+            raise RuntimeError(f"Error reading .sandbox-rules: {str(e)}")
+
+    extra_rules = "\n".join(extra_rules_list)
+
+    # Note: Rules are evaluated in order; the LAST matching rule wins.
+    # To ensure specific denials are enforced, they must come after broad allowances.
+    return f"""
+    (version 1)
+    (allow default)
+    (deny network*)
+    (deny file-write*)
+    (allow file-write* (subpath "/dev")) ; Allow writing to stdout/stderr
+    (allow file-write* (subpath "{cwd}")) ; Allow writing to current directory
+    {extra_rules}
+    (deny file-read* (literal "{sandbox_rules_path}")) ; Prevent reading the rules file
+    (deny file-write* (literal "{sandbox_rules_path}")) ; Prevent modifying the rules file
+    """
 
 
 # --- Sandboxed Standard Python (CPython) ---
@@ -33,45 +73,9 @@ def execute_python(
     CRITICAL: The environment is STRICTLY STATELESS. Every execution starts entirely fresh. You must consolidate all variables, imports, and logic into one single tool call.
     """
 
-    # macOS Seatbelt Sandbox Profile
-    # Allows reading files, but aggressively blocks writing to disk and blocks all internet/network access.
-    # Dynamically allow writing to the current working directory.
-    cwd = os.getcwd()
-
-    # Load additional rules from .sandbox-rules if it exists
-    extra_rules_list = []
-    sandbox_rules_path = os.path.join(cwd, ".sandbox-rules")
-    if os.path.exists(sandbox_rules_path):
-        try:
-            with open(sandbox_rules_path, "r") as f:
-                now = datetime.now()
-                for line in f:
-                    # Look for ; EXPIRES: YYYY-MM-DDTHH:MM:SS
-                    match = re.search(r";\s*EXPIRES:\s*(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})", line)
-                    if match:
-                        try:
-                            expiry = datetime.fromisoformat(match.group(1))
-                            if expiry < now:
-                                continue  # Skip expired rule
-                        except ValueError:
-                            pass  # Keep rule if date format is invalid but it's still a comment
-                    extra_rules_list.append(line.strip())
-        except Exception as e:
-            return f"Error reading .sandbox-rules: {str(e)}"
-
-    extra_rules = "\n".join(extra_rules_list)
-
-    sandbox_profile = f"""
-    (version 1)
-    (allow default)
-    (deny network*)
-    (deny file-write*)
-    (allow file-write* (subpath "/dev")) ; Allow writing to stdout/stderr
-    (allow file-write* (subpath "{cwd}")) ; Allow writing to current directory
-    {extra_rules}
-    """
-
     try:
+        sandbox_profile = _get_sandbox_profile(os.getcwd())
+
         # sys.executable ensures it uses the same Python (and dependencies) uv is using
         result = subprocess.run(
             ["sandbox-exec", "-p", sandbox_profile, sys.executable, "-c", code],
