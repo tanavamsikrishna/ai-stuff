@@ -17,7 +17,7 @@ The script automatically detects the file type based on its extension.
 
 ## Implementation Details
 
-- **Language**: Python 3.10+
+- **Language**: Python 3.12+
 - **Dependency Management**: Managed via `uv` (requires `PyYAML`, `json5`).
 - **Path Generation**: Flattens nested objects and arrays using dot notation (e.g., `parent.child.*.grandchild`).
 - **Safety**: Includes cycle detection for YAML/JSON5 and robust quoting for keys with special characters.

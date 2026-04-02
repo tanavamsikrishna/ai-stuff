@@ -46,7 +46,7 @@ def get_paths(obj, current_path_parts=None, paths=None, seen=None):
 
 def main():
     if len(sys.argv) < 2:
-        sys.exit(1)
+        sys.exit("Usage: analyze.py <file_path>")
     file_path = sys.argv[1]
     ext = os.path.splitext(file_path)[1].lower()
     paths = set()
