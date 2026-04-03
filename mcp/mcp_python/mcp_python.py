@@ -1,7 +1,8 @@
 #!/usr/bin/env -S uv run --script
 # /// script
+# requires-python = ">=3.12, <4"
 # dependencies = [
-#   "fastmcp", "numpy", "polars", "scipy", "openpyxl", "pyyaml", "tomli", "requests"
+#   "fastmcp", "numpy", "polars", "scipy", "openpyxl", "pyyaml", "requests"
 # ]
 # ///
 
@@ -75,7 +76,7 @@ def execute_python(
     DO NOT: Use this as a line-by-line interactive shell. Do not make multiple back-and-forth tool calls to calculate intermediate steps.
     CRITICAL: The environment is STRICTLY STATELESS. Every execution starts entirely fresh. You must consolidate all variables, imports, and logic into one single tool call.
 
-    Available libraries: numpy, polars, scipy, openpyxl, pyyaml, tomli, requests
+    Available libraries: numpy, polars, scipy, openpyxl, pyyaml, tomllib (standard library), requests
     """
 
     try:
