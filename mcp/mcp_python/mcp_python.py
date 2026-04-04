@@ -72,11 +72,16 @@ def execute_python(
 ) -> str:
     """
     Executes a self-contained Python script.
-    DO: Delegate entire complex tasks to a single, intelligent script. Write end-to-end programs that handle their own intermediate logic, data, and imports, and then use print() to output the final result.
-    DO NOT: Use this as a line-by-line interactive shell. Do not make multiple back-and-forth tool calls to calculate intermediate steps.
-    CRITICAL: The environment is STRICTLY STATELESS. Every execution starts entirely fresh. You must consolidate all variables, imports, and logic into one single tool call.
 
-    Available libraries: numpy, polars, scipy, openpyxl, pyyaml, tomllib (standard library), requests
+    EFFICIENCY GOAL: Use this tool to consolidate multi-step workflows. Instead of making sequential calls to simpler tools (like `read_file`, `shell`, or calculators), write a single Python script that handles the file I/O, data processing, and calculations all at once.
+
+    CRITICAL ENVIRONMENT RULES:
+    1. STATELESS: Variables, imports, and functions DO NOT persist between calls. Every script must be completely self-contained.
+    2. END-TO-END: The script should perform the complete task internally and use print() to output the final, processed result.
+
+    (Note: You may still use this tool multiple times to debug errors or explore data, but ensure each script is independent.)
+
+    Available libraries: numpy, polars, scipy, openpyxl, pyyaml, tomllib, requests and the python standard library
     """
 
     try:
