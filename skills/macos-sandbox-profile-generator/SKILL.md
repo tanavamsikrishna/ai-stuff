@@ -1,6 +1,6 @@
 ---
-name: sandbox-rules-generator
-description: Helps write macOS sandbox-exec rules for the ai-tool sandbox. Use when creating or modifying sandbox profiles that restrict file access, network, and other system resources. The rules file is typically at $SCRIPTS_FOLDER/ai-tool-sandbox-rules.lisp.
+name: macos-sandbox-profile-generator
+description: Expert generator for macOS sandbox-exec (Seatbelt) SBPL profiles. Specializes in Last-Match-Wins logic to safely restrict file, network, and other system resources.
 ---
 
 # Sandbox Rules Generator
